@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Smart Campus Ecosystem</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #0b0e18;
+  --bg2:       #0f1525;
+  --bg3:       #131c30;
+  --border:    #1e3050;
+  --border2:   #2a4070;
+  --accent:    #3b82f6;
+  --accent2:   #60a5fa;
+  --accent3:   #93c5fd;
+  --green:     #34d399;
+  --red:       #f87171;
+  --amber:     #fbbf24;
+  --text:      #e2e8f0;
+  --text2:     #94a3b8;
+  --text3:     #475569;
+  --card:      #111827;
+  --row-alt:   rgba(30,48,80,0.25);
+  --low:       rgba(239,68,68,0.12);
+  --staff-row: rgba(59,130,246,0.10);
+  --radius:    6px;
+  --radius2:   10px;
+  --font-h:    'Rajdhani', sans-serif;
+  --font-m:    'Inter', sans-serif;
+  --font-code: 'JetBrains Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-m); font-size: 14px; overflow: hidden; }
+
+/* ── Layout ── */
+#app { display: flex; flex-direction: column; height: 100vh; }
+header { padding: 14px 24px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; gap: 20px; flex-shrink: 0; background: var(--bg2); }
+header .logo { display: flex; flex-direction: column; }
+header .logo h1 { font-family: var(--font-h); font-size: 22px; font-weight: 700; letter-spacing: 2px; color: var(--accent2); line-height: 1; }
+header .logo small { font-size: 11px; color: var(--text3); letter-spacing: 1px; font-family: var(--font-code); margin-top: 2px; }
+header .monitors { display: flex; gap: 10px; margin-left: auto; align-items: center; }
+.monitor-pill { font-size: 10px; font-family: var(--font-code); padding: 3px 8px; border-radius: 20px; border: 1px solid; display: flex; align-items: center; gap: 5px; }
+.monitor-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+.monitor-pill { border-color: var(--border2); color: var(--text2); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── Tabs ── */
+.tabs { display: flex; gap: 2px; padding: 10px 20px 0; border-bottom: 1px solid var(--border); background: var(--bg2); flex-shrink: 0; }
+.tab { padding: 8px 20px; border-radius: var(--radius) var(--radius) 0 0; cursor: pointer; font-family: var(--font-h); font-size: 14px; font-weight: 600; letter-spacing: 1px; color: var(--text2); border: 1px solid transparent; border-bottom: none; transition: all .15s; user-select: none; }
+.tab:hover { color: var(--accent2); background: rgba(59,130,246,.07); }
+.tab.active { color: var(--accent2); border-color: var(--border2); background: var(--bg); position: relative; bottom: -1px; }
+
+/* ── Main content ── */
+.content { flex: 1; overflow: hidden; padding: 18px; display: flex; gap: 14px; }
+.panel { display: none; width: 100%; gap: 14px; overflow: hidden; }
+.panel.active { display: flex; }
+
+/* ── Cards / child panels ── */
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius2); padding: 16px; display: flex; flex-direction: column; overflow: hidden; }
+.card-title { font-family: var(--font-h); font-size: 13px; font-weight: 600; letter-spacing: 1.5px; color: var(--text3); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.card-title::before { content:''; display:block; width:3px; height:14px; background:var(--accent); border-radius:2px; }
+.card-title.green::before { background: var(--green); }
+.card-title.amber::before { background: var(--amber); }
+
+/* ── Tables ── */
+.tbl-wrap { flex: 1; overflow: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: var(--bg3); color: var(--text2); font-family: var(--font-h); font-weight: 600; letter-spacing: 1px; font-size: 11px; text-transform: uppercase; padding: 8px 10px; text-align: left; position: sticky; top: 0; z-index: 1; border-bottom: 1px solid var(--border2); white-space: nowrap; }
+td { padding: 7px 10px; border-bottom: 1px solid rgba(30,48,80,.4); vertical-align: middle; font-family: var(--font-code); font-size: 12px; }
+tr:nth-child(even) td { background: var(--row-alt); }
+tr:hover td { background: rgba(59,130,246,.08); }
+tr.low td { background: var(--low) !important; }
+tr.staff td { background: var(--staff-row) !important; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge.staff { background: rgba(59,130,246,.2); color: var(--accent2); border: 1px solid rgba(59,130,246,.3); }
+.badge.student { background: rgba(148,163,184,.1); color: var(--text2); border: 1px solid var(--border); }
+.badge.lab { background: rgba(251,191,36,.08); color: var(--amber); border: 1px solid rgba(251,191,36,.2); }
+.badge.cafe { background: rgba(52,211,153,.08); color: var(--green); border: 1px solid rgba(52,211,153,.2); }
+.badge.book { background: rgba(147,197,253,.08); color: var(--accent3); border: 1px solid rgba(147,197,253,.2); }
+.stock-low { color: var(--red); font-weight: 600; }
+.stock-ok  { color: var(--green); }
+
+/* ── Forms ── */
+.form-group { margin-bottom: 10px; }
+label { display: block; font-size: 11px; color: var(--text2); margin-bottom: 4px; letter-spacing: .5px; font-family: var(--font-h); font-weight: 600; text-transform: uppercase; }
+input[type=text], input[type=number], input[type=date], select {
+  width: 100%; padding: 7px 10px; background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius); color: var(--text); font-family: var(--font-code); font-size: 13px;
+  outline: none; transition: border-color .15s;
+}
+input:focus, select:focus { border-color: var(--accent); }
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+/* ── Buttons ── */
+.btn { padding: 7px 16px; border: none; border-radius: var(--radius); cursor: pointer; font-family: var(--font-h); font-weight: 600; font-size: 13px; letter-spacing: .5px; transition: all .15s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #2563eb; }
+.btn-success { background: rgba(52,211,153,.15); color: var(--green); border: 1px solid rgba(52,211,153,.3); }
+.btn-success:hover { background: rgba(52,211,153,.25); }
+.btn-danger { background: rgba(248,113,113,.12); color: var(--red); border: 1px solid rgba(248,113,113,.25); padding: 3px 8px; font-size: 11px; }
+.btn-danger:hover { background: rgba(248,113,113,.22); }
+.btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent2); }
+.btn:disabled { opacity: .35; cursor: not-allowed; }
+.btn-big { width: 100%; padding: 13px; font-size: 15px; letter-spacing: 2px; background: linear-gradient(135deg, #1e40af, #3b82f6); color: #fff; box-shadow: 0 4px 20px rgba(59,130,246,.3); border-radius: 8px; }
+.btn-big:hover { box-shadow: 0 6px 28px rgba(59,130,246,.5); transform: translateY(-1px); }
+
+/* ── Status messages ── */
+.status { padding: 8px 12px; border-radius: var(--radius); font-size: 12px; font-family: var(--font-code); margin-top: 8px; line-height: 1.5; white-space: pre-line; }
+.status.ok  { background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.25); color: var(--green); }
+.status.err { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.25); color: var(--red); }
+.status.info{ background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); color: var(--accent2); }
+.status.hidden { display: none; }
+
+/* ── Divider ── */
+.sep { font-family: var(--font-h); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--text3); text-transform: uppercase; margin: 14px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+
+/* ── Order tab specifics ── */
+.order-layout { display: flex; flex-direction: column; gap: 10px; height: 100%; }
+.order-top { flex-shrink: 0; }
+.order-main { flex: 1; display: flex; gap: 12px; min-height: 0; }
+.cart-table td .qty-ctrl { display: flex; align-items: center; gap: 6px; }
+.qty-ctrl span { min-width: 24px; text-align: center; }
+.summary-block { display: flex; flex-direction: column; gap: 6px; }
+.sum-row { display: flex; justify-content: space-between; font-family: var(--font-code); font-size: 13px; }
+.sum-row.total { font-size: 15px; font-weight: 700; color: var(--green); border-top: 1px solid var(--border2); padding-top: 8px; margin-top: 4px; }
+.sum-row.discount { color: var(--accent2); }
+.delivery-opts { display: flex; gap: 10px; margin-bottom: 10px; }
+.delivery-opt { flex: 1; padding: 8px 12px; border: 1px solid var(--border2); border-radius: var(--radius); cursor: pointer; font-size: 12px; text-align: center; transition: all .15s; }
+.delivery-opt:hover { border-color: var(--accent); }
+.delivery-opt.selected { border-color: var(--accent); background: rgba(59,130,246,.12); color: var(--accent2); }
+.pay-opts { display: flex; gap: 10px; margin-bottom: 10px; }
+.pay-opt { flex: 1; padding: 8px; border: 1px solid var(--border2); border-radius: var(--radius); cursor: pointer; text-align: center; font-family: var(--font-h); font-weight: 600; font-size: 13px; transition: all .15s; }
+.pay-opt:hover { border-color: var(--accent); }
+.pay-opt.selected { border-color: var(--accent); background: rgba(59,130,246,.12); color: var(--accent2); }
+
+/* ── Reports ── */
+.report-box { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; font-family: var(--font-code); font-size: 12px; line-height: 1.8; white-space: pre; color: var(--accent3); min-height: 120px; overflow: auto; }
+.cmp-result { text-align: center; padding: 14px; font-family: var(--font-h); font-size: 15px; font-weight: 600; }
+
+/* ── Transactions ── */
+.tx-list { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 4px; }
+.tx-item { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; font-family: var(--font-code); font-size: 11px; color: var(--text2); }
+.tx-item span.order-id { color: var(--accent2); font-weight: 600; margin-right: 8px; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── Toasts ── */
+#toast { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius2); padding: 12px 16px; font-size: 13px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 32px rgba(0,0,0,.5); animation: slideIn .25s ease; min-width: 260px; }
+.toast .icon { font-size: 16px; }
+@keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes fadeOut { from{opacity:1} to{opacity:0;transform:translateX(100%)} }
+.toast.ok   { border-left: 3px solid var(--green); }
+.toast.err  { border-left: 3px solid var(--red); }
+.toast.info { border-left: 3px solid var(--accent); }
+
+/* ── Loading overlay ── */
+#loading { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:1000; flex-direction:column; gap:16px; }
+#loading h2 { font-family:var(--font-h); font-size:24px; color:var(--accent2); letter-spacing:3px; }
+.spinner { width:36px; height:36px; border:3px solid var(--border2); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <h2>SMART CAMPUS ECOSYSTEM</h2>
+  <small style="color:var(--text3);font-family:var(--font-code);font-size:12px;">Connecting to local server…</small>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="logo">
+      <h1>⬡ SMART CAMPUS ECOSYSTEM</h1>
+      <small>FACULTY OF COMPUTERS AND AI &nbsp;·&nbsp; CAIRO UNIVERSITY</small>
+    </div>
+    <div class="monitors">
+      <div class="monitor-pill"><span class="dot"></span> LOW-STOCK MONITOR</div>
+      <div class="monitor-pill"><span class="dot" style="animation-delay:.6s"></span> EXPIRY MONITOR</div>
+      <div class="monitor-pill"><span class="dot" style="animation-delay:1.2s"></span> AUTO-SAVE</div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('inventory')">⊞ INVENTORY</div>
+    <div class="tab" onclick="switchTab('users')">⊹ USERS</div>
+    <div class="tab" onclick="switchTab('order')">⊕ PLACE ORDER</div>
+    <div class="tab" onclick="switchTab('reports')">⊗ REPORTS</div>
+    <div class="tab" onclick="switchTab('transactions')">⊘ TRANSACTIONS</div>
+  </div>
+
+  <div class="content">
+
+    <div class="panel active" id="panel-inventory">
+      <div class="card" style="flex:1.1; min-width:0;">
+        <div class="card-title">Current Inventory</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+          <input type="text" id="inv-search" placeholder="Filter by name or category…" oninput="filterInventory()" style="flex:1;"/>
+          <button class="btn btn-ghost" onclick="loadInventory()" style="white-space:nowrap;">↻ Refresh</button>
+        </div>
+        <div class="tbl-wrap" style="flex:1;">
+          <table>
+            <thead><tr>
+              <th>ID</th><th>Name</th><th>Category</th>
+              <th>Price (EGP)</th><th>Stock</th><th>Extra Info</th><th></th>
+            </tr></thead>
+            <tbody id="inv-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;width:310px;flex-shrink:0;overflow-y:auto;">
+
+        <div class="card">
+          <div class="card-title">Search by ID</div>
+          <div style="display:flex;gap:8px;">
+            <input type="number" id="inv-sid" placeholder="Resource ID" min="1" style="flex:1;"/>
+            <button class="btn btn-ghost" onclick="searchResource()">Search</button>
+          </div>
+          <div id="inv-sid-status" class="status hidden"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title green">Add New Resource</div>
+          <div class="form-group"><label>Name</label><input type="text" id="add-name" placeholder="Resource name"/></div>
+          <div class="row-2">
+            <div class="form-group"><label>Price (EGP)</label><input type="number" id="add-price" placeholder="0.00" min="0.01" step="0.01"/></div>
+            <div class="form-group"><label>Stock</label><input type="number" id="add-stock" placeholder="0" min="0"/></div>
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select id="add-type" onchange="updateExtraLabel()">
+              <option value="Lab Hardware">Lab Hardware</option>
+              <option value="Cafeteria Perishables">Cafeteria Perishables</option>
+              <option value="Bookstore Media">Bookstore Media</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label id="extra-label">Warranty Date (YYYY-MM-DD)</label>
+            <input type="text" id="add-extra" placeholder="e.g. 2026-12-31"/>
+          </div>
+          <button class="btn btn-success" onclick="addResource()">+ Add Resource</button>
+          <div id="add-status" class="status hidden"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title amber">Restock</div>
+          <div class="row-2">
+            <div class="form-group"><label>Resource ID</label><input type="number" id="restock-id" min="1"/></div>
+            <div class="form-group"><label>Quantity</label><input type="number" id="restock-qty" value="1" min="1" onkeypress="return event.charCode >= 48"/></div>
+          </div>
+          <button class="btn btn-primary" onclick="restockResource()">Restock</button>
+          <div id="restock-status" class="status hidden"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Compare Costs</div>
+          <div class="row-2">
+            <div class="form-group"><label>ID #1</label><input type="number" id="cmp-id1" min="1"/></div>
+            <div class="form-group"><label>ID #2</label><input type="number" id="cmp-id2" min="1"/></div>
+          </div>
+          <button class="btn btn-ghost" onclick="compareResources()">Compare</button>
+          <div id="cmp-status" class="status hidden"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="panel" id="panel-users">
+      <div class="card" style="flex:1;min-width:0;">
+        <div class="card-title">Registered Users</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input type="text" id="user-filter" placeholder="Filter by name or ID…" oninput="filterUsers()" style="flex:1;"/>
+          <button class="btn btn-ghost" onclick="loadUsers()">↻ Refresh</button>
+        </div>
+        <div class="tbl-wrap" style="flex:1;">
+          <table>
+            <thead><tr><th>Campus ID</th><th>Name</th><th>Role</th><th>Discount</th><th></th></tr></thead>
+            <tbody id="user-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;width:300px;flex-shrink:0;overflow-y:auto;">
+
+        <div class="card">
+          <div class="card-title green">Register New User</div>
+          <div class="form-group"><label>Full Name</label><input type="text" id="reg-name" placeholder="e.g. Ahmed Hassan"/></div>
+          <div class="form-group"><label>Campus ID</label><input type="text" id="reg-cid" placeholder="e.g. 20240001"/></div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="reg-role">
+              <option value="Student">Student</option>
+              <option value="Staff">Staff</option>
+            </select>
+          </div>
+          <button class="btn btn-success" onclick="registerUser()">Register</button>
+          <div id="reg-status" class="status hidden"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Find User</div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="user-sid" placeholder="Campus ID" style="flex:1;"/>
+            <button class="btn btn-ghost" onclick="searchUser()">Find</button>
+          </div>
+          <div id="user-sid-status" class="status hidden"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="panel" id="panel-order" style="flex-direction:column;">
+      <div class="order-layout" style="width:100%;height:100%;">
+
+        <div class="card order-top">
+          <div class="card-title">Step 1 — Identify User</div>
+          <div style="display:flex;gap:10px;align-items:flex-end;">
+            <div style="flex:1;" class="form-group" style="margin-bottom:0;">
+              <label>Campus ID</label>
+              <input type="text" id="ord-userid" placeholder="Enter campus ID…"/>
+            </div>
+            <button class="btn btn-primary" onclick="findOrderUser()" style="margin-bottom:1px;">Find User</button>
+            <div id="ord-user-status" class="status hidden" style="flex:1;margin-bottom:0;margin-top:0;"></div>
+          </div>
+        </div>
+
+        <div class="order-main" id="ord-body" style="opacity:.35;pointer-events:none;transition:opacity .2s;">
+          <div class="card" style="flex:1.1;min-width:0;display:flex;flex-direction:column;gap:0;">
+            <div class="card-title">Step 2 — Delivery & Cart</div>
+
+            <div class="sep">Delivery Method</div>
+            <div class="delivery-opts">
+              <div class="delivery-opt selected" id="del-pickup" onclick="selectDelivery('Pickup')">🏫 Pickup (Free)</div>
+              <div class="delivery-opt" id="del-dorm" onclick="selectDelivery('Dorm Delivery')">🏠 Dorm Delivery (+EGP 5.00)</div>
+            </div>
+
+            <div class="sep">Add Item</div>
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+              <div style="flex:1;" class="form-group" style="margin-bottom:0;">
+                <label>Resource ID</label>
+                <input type="number" id="ord-resid" min="1"/>
+              </div>
+              <div class="form-group" style="margin-bottom:0;width:80px;">
+                <label>Qty</label>
+                <input type="number" id="ord-qty" value="1" min="1" onkeypress="return event.charCode >= 48"/>
+              </div>
+              <div style="display:flex;align-items:flex-end;">
+                <button class="btn btn-success" onclick="addToCart()" style="margin-bottom:1px;">Add</button>
+              </div>
+            </div>
+            <div id="ord-add-status" class="status hidden"></div>
+
+            <div class="sep">Cart</div>
+            <div class="tbl-wrap" style="flex:1;">
+              <table>
+                <thead><tr><th>ID</th><th>Name</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th><th></th></tr></thead>
+                <tbody id="cart-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card" style="width:280px;flex-shrink:0;display:flex;flex-direction:column;">
+            <div class="card-title">Order Summary</div>
+            <div class="summary-block" id="ord-summary">
+              <div class="sum-row"><span>Raw Subtotal</span><span id="sum-raw">EGP 0.00</span></div>
+              <div class="sum-row discount" id="sum-disc-row" style="display:none;"><span>Staff Discount (10%)</span><span id="sum-disc">-EGP 0.00</span></div>
+              <div class="sum-row"><span>Delivery Fee</span><span id="sum-del">EGP 0.00</span></div>
+              <div class="sum-row total"><span>TOTAL</span><span id="sum-total">EGP 0.00</span></div>
+            </div>
+
+            <div class="sep" style="margin-top:14px;">Step 3 — Payment</div>
+            <div class="pay-opts">
+              <div class="pay-opt selected" id="pay-cash" onclick="selectPayment('Cash')">💵 Cash</div>
+              <div class="pay-opt" id="pay-card" onclick="selectPayment('Card')">💳 Card</div>
+            </div>
+            <div id="card-field" class="form-group" style="display:none;">
+              <label>16-digit Card Number</label>
+              <input type="text" id="ord-card" placeholder="1234567890123456" maxlength="16" pattern="\d{16}"/>
+            </div>
+
+            <div style="margin-top:auto;padding-top:14px;">
+              <button class="btn btn-big" id="checkout-btn" onclick="checkout()" disabled>CHECKOUT</button>
+              <div id="checkout-status" class="status hidden" style="margin-top:10px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-reports">
+      <div class="card" style="flex:1.2;min-width:0;">
+        <div class="card-title">Full Inventory Report</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center;">
+          <input type="text" id="rep-filter" placeholder="Filter…" oninput="filterReports()" style="flex:1;min-width:120px;"/>
+          <select id="rep-cat" onchange="filterReports()" style="width:180px;">
+            <option value="">All Categories</option>
+            <option value="Lab Hardware">Lab Hardware</option>
+            <option value="Cafeteria Perishables">Cafeteria Perishables</option>
+            <option value="Bookstore Media">Bookstore Media</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text2);">
+            <input type="checkbox" id="rep-low-only" onchange="filterReports()"/>Low stock only
+          </label>
+        </div>
+        <div class="tbl-wrap" style="flex:1;">
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Price (EGP)</th><th>Stock</th><th>Extra</th></tr></thead>
+            <tbody id="rep-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;width:310px;flex-shrink:0;overflow-y:auto;">
+
+        <div class="card">
+          <div class="card-title">Detailed Report</div>
+          <div style="display:flex;gap:8px;">
+            <input type="number" id="rep-id" placeholder="Resource ID" min="1" style="flex:1;"/>
+            <button class="btn btn-ghost" onclick="viewReport()">View</button>
+          </div>
+          <div class="report-box" id="rep-box" style="margin-top:10px;">Click "View" to see resource details.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Cost Comparison</div>
+          <div class="row-2">
+            <div class="form-group"><label>ID #1</label><input type="number" id="rcmp-id1" min="1"/></div>
+            <div class="form-group"><label>ID #2</label><input type="number" id="rcmp-id2" min="1"/></div>
+          </div>
+          <button class="btn btn-ghost" onclick="compareReport()">Compare</button>
+          <div id="rcmp-result" class="cmp-result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Stats</div>
+          <div id="stats-box" style="font-family:var(--font-code);font-size:12px;line-height:2;color:var(--text2);"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="panel" id="panel-transactions" style="flex-direction:column;">
+      <div class="card" style="flex:1;min-width:0;">
+        <div class="card-title">Transaction Log</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+          <input type="text" id="tx-filter" placeholder="Filter transactions…" oninput="filterTransactions()" style="flex:1;"/>
+          <button class="btn btn-ghost" onclick="loadTransactions()">↻ Refresh</button>
+        </div>
+        <div class="tx-list" id="tx-list">
+          <div style="color:var(--text3);font-family:var(--font-code);font-size:12px;text-align:center;padding:40px;">No transactions yet.</div>
+        </div>
+      </div>
+    </div>
+
+  </div></div><div id="toast"></div>
+
+<script>
+const API = 'http://localhost:3000/api';
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let allResources = [];
+let allUsers     = [];
+let allTransactions = [];
+let orderUser    = null;
+let cart         = [];      // {id, name, qty, price}
+let delivery     = 'Pickup';
+let paymentMethod = 'Cash';
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const icons = { ok: '✓', err: '✗', info: 'ℹ' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span class="icon">${icons[type] || 'ℹ'}</span><span>${msg}</span>`;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(() => { el.style.animation = 'fadeOut .3s ease forwards'; setTimeout(() => el.remove(), 300); }, 3500);
+}
+
+// ─── Status helper ────────────────────────────────────────────────────────────
+function setStatus(id, msg, type) {
+  const el = document.getElementById(id);
+  el.className = `status ${type}`;
+  el.textContent = msg;
+}
+
+// ─── API fetch wrapper ────────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+// ─── Tab switching ────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const names = ['inventory','users','order','reports','transactions'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'panel-' + name);
+  });
+  if (name === 'reports')      { loadInventory(); renderReports(); renderStats(); }
+  if (name === 'transactions') loadTransactions();
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// INVENTORY TAB
+// ──────────────────────────────────────────────────────────────────────────────
+async function loadInventory() {
+  try {
+    allResources = await api('GET', '/resources');
+    renderInventory();
+  } catch (e) { toast('Could not load inventory: ' + e.message, 'err'); }
+}
+
+const catBadge = { 'Lab Hardware': 'lab', 'Cafeteria Perishables': 'cafe', 'Bookstore Media': 'book' };
+const catLabel = { 'Lab Hardware': 'Lab HW', 'Cafeteria Perishables': 'Cafeteria', 'Bookstore Media': 'Bookstore' };
+
+function renderInventory(data) {
+  const rows = data || filterInventoryData();
+  const tbody = document.getElementById('inv-tbody');
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px;">No resources found.</td></tr>'; return; }
+  tbody.innerHTML = rows.map(r => `
+    <tr class="${r.stock <= 5 ? 'low' : ''}">
+      <td>${r.id}</td>
+      <td>${esc(r.name)}</td>
+      <td><span class="badge ${catBadge[r.category] || ''}">${catLabel[r.category] || esc(r.category)}</span></td>
+      <td>${r.price.toFixed(2)}</td>
+      <td class="${r.stock <= 5 ? 'stock-low' : 'stock-ok'}">${r.stock}${r.stock <= 5 ? ' ⚠' : ''}</td>
+      <td style="color:var(--text2)">${esc(r.extra || '—')}</td>
+      <td><button class="btn btn-danger" onclick="removeResource(${r.id}, '${esc(r.name)}')">✕ Remove</button></td>
+    </tr>`).join('');
+}
+
+function filterInventoryData() {
+  const q = document.getElementById('inv-search').value.toLowerCase();
+  return allResources.filter(r => !q || r.name.toLowerCase().includes(q) || r.category.toLowerCase().includes(q));
+}
+function filterInventory() { renderInventory(); }
+
+async function searchResource() {
+  const id = parseInt(document.getElementById('inv-sid').value);
+  if (!id) return setStatus('inv-sid-status', 'Enter a resource ID.', 'err');
+  try {
+    const r = await api('GET', `/resources/${id}`);
+    setStatus('inv-sid-status',
+      `ID: ${r.id}\nName: ${r.name}\nCategory: ${r.category}\nPrice: EGP ${r.price.toFixed(2)}\nStock: ${r.stock} units${r.extra ? '\nExtra: ' + r.extra : ''}`, 'info');
+  } catch (e) { setStatus('inv-sid-status', e.message, 'err'); }
+}
+
+const extraLabels = { 'Lab Hardware': 'Warranty Date (YYYY-MM-DD)', 'Cafeteria Perishables': 'Expiry Date (YYYY-MM-DD)', 'Bookstore Media': 'Author' };
+function updateExtraLabel() {
+  const type = document.getElementById('add-type').value;
+  document.getElementById('extra-label').textContent = extraLabels[type] || 'Extra Info';
+}
+
+async function addResource() {
+  const name  = document.getElementById('add-name').value.trim();
+  const price = parseFloat(document.getElementById('add-price').value);
+  const stock = parseInt(document.getElementById('add-stock').value);
+  const type  = document.getElementById('add-type').value;
+  const extra = document.getElementById('add-extra').value.trim();
+  try {
+    const r = await api('POST', '/resources', { name, price, stock, type, extra });
+    setStatus('add-status', `✓ Added: ${r.name} (ID ${r.id})`, 'ok');
+    toast(`Resource "${r.name}" added (ID ${r.id})`, 'ok');
+    document.getElementById('add-name').value = '';
+    document.getElementById('add-price').value = '';
+    document.getElementById('add-stock').value = '';
+    document.getElementById('add-extra').value = '';
+    loadInventory();
+  } catch (e) { setStatus('add-status', e.message, 'err'); }
+}
+
+async function restockResource() {
+  const id  = parseInt(document.getElementById('restock-id').value);
+  const qty = parseInt(document.getElementById('restock-qty').value);
+  
+  // Guard against invalid qty on frontend
+  if (isNaN(qty) || qty <= 0) {
+    return setStatus('restock-status', 'Quantity must be positive.', 'err');
+  }
+
+  try {
+    const r = await api('PATCH', `/resources/${id}/restock`, { qty });
+    setStatus('restock-status', `✓ ${r.name} restocked — new stock: ${r.stock}`, 'ok');
+    toast(`Restocked "${r.name}" (+${qty})`, 'ok');
+    loadInventory();
+  } catch (e) { setStatus('restock-status', e.message, 'err'); }
+}
+
+async function compareResources() {
+  const id1 = document.getElementById('cmp-id1').value;
+  const id2 = document.getElementById('cmp-id2').value;
+  try {
+    const res = await api('GET', `/compare?id1=${id1}&id2=${id2}`);
+    setStatus('cmp-status', res.comparison, 'info');
+  } catch (e) { setStatus('cmp-status', e.message, 'err'); }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// USERS TAB
+// ──────────────────────────────────────────────────────────────────────────────
+async function loadUsers() {
+  try {
+    allUsers = await api('GET', '/users');
+    renderUsers();
+  } catch (e) { toast('Could not load users: ' + e.message, 'err'); }
+}
+
+function renderUsers(data) {
+  const rows = data || filterUsersData();
+  const tbody = document.getElementById('user-tbody');
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:24px;">No users found.</td></tr>'; return; }
+  tbody.innerHTML = rows.map(u => `
+    <tr class="${u.role === 'Staff' ? 'staff' : ''}">
+      <td>${esc(u.campusID)}</td>
+      <td>${esc(u.name)}</td>
+      <td><span class="badge ${u.role.toLowerCase()}">${u.role}</span></td>
+      <td>${u.role === 'Staff' ? '<span style="color:var(--accent2)">10%</span>' : '—'}</td>
+      <td><button class="btn btn-danger" onclick="removeUser('${esc(u.campusID)}', '${esc(u.name)}')">✕ Remove</button></td>
+    </tr>`).join('');
+}
+
+function filterUsersData() {
+  const q = document.getElementById('user-filter').value.toLowerCase();
+  return allUsers.filter(u => !q || u.name.toLowerCase().includes(q) || u.campusID.toLowerCase().includes(q));
+}
+function filterUsers() { renderUsers(); }
+
+async function registerUser() {
+  const name     = document.getElementById('reg-name').value;
+  const campusID = document.getElementById('reg-cid').value;
+  const role     = document.getElementById('reg-role').value;
+  try {
+    const u = await api('POST', '/users', { name, campusID, role });
+    setStatus('reg-status', `✓ Registered: ${u.name} (${u.campusID}) as ${u.role}`, 'ok');
+    toast(`User "${u.name}" registered`, 'ok');
+    document.getElementById('reg-name').value = '';
+    document.getElementById('reg-cid').value  = '';
+    loadUsers();
+  } catch (e) { setStatus('reg-status', e.message, 'err'); }
+}
+
+async function searchUser() {
+  const cid = document.getElementById('user-sid').value.trim();
+  if (!cid) return setStatus('user-sid-status', 'Enter a campus ID.', 'err');
+  try {
+    const u = await api('GET', `/users/${encodeURIComponent(cid)}`);
+    setStatus('user-sid-status',
+      `Name:      ${u.name}\nCampus ID: ${u.campusID}\nRole:      ${u.role}\nDiscount:  ${u.role === 'Staff' ? '10%' : '0%'}`, 'info');
+  } catch (e) { setStatus('user-sid-status', e.message, 'err'); }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// ORDER TAB
+// ──────────────────────────────────────────────────────────────────────────────
+async function findOrderUser() {
+  const cid = document.getElementById('ord-userid').value.trim();
+  if (!cid) return setStatus('ord-user-status', 'Enter a campus ID.', 'err');
+  try {
+    const u = await api('GET', `/users/${encodeURIComponent(cid)}`);
+    orderUser = u;
+    cart = [];
+    setStatus('ord-user-status', `✓ ${u.name} [${u.role}]`, 'ok');
+    document.getElementById('ord-body').style.opacity = '1';
+    document.getElementById('ord-body').style.pointerEvents = 'all';
+    document.getElementById('checkout-btn').disabled = false;
+    renderCart();
+    recalc();
+  } catch (e) {
+    orderUser = null;
+    setStatus('ord-user-status', e.message, 'err');
+    document.getElementById('ord-body').style.opacity = '.35';
+    document.getElementById('ord-body').style.pointerEvents = 'none';
+  }
+}
+
+function selectDelivery(d) {
+  delivery = d;
+  document.getElementById('del-pickup').classList.toggle('selected', d === 'Pickup');
+  document.getElementById('del-dorm').classList.toggle('selected', d === 'Dorm Delivery');
+  recalc();
+}
+
+function selectPayment(p) {
+  paymentMethod = p;
+  document.getElementById('pay-cash').classList.toggle('selected', p === 'Cash');
+  document.getElementById('pay-card').classList.toggle('selected', p === 'Card');
+  document.getElementById('card-field').style.display = p === 'Card' ? 'block' : 'none';
+}
+
+async function addToCart() {
+  const id  = parseInt(document.getElementById('ord-resid').value);
+  const qty = parseInt(document.getElementById('ord-qty').value);
+
+  // Guard against missing ID or quantity <= 0
+  if (!id) return setStatus('ord-add-status', 'Enter a resource ID.', 'err');
+  
+  if (isNaN(qty) || qty <= 0) {
+    return setStatus('ord-add-status', 'Quantity must be at least 1.', 'err');
+  }
+
+  try {
+    const r = await api('GET', `/resources/${id}`);
+    
+    // Check stock before adding
+    if (r.stock < qty) {
+      return setStatus('ord-add-status', `Only ${r.stock} units available for "${r.name}".`, 'err');
+    }
+
+    const existing = cart.find(c => c.id === id);
+    if (existing) {
+      existing.qty += qty;
+    } else {
+      cart.push({ id, name: r.name, qty, price: r.price });
+    }
+
+    setStatus('ord-add-status', `✓ Added: ${r.name} x${qty}`, 'ok');
+    renderCart();
+    recalc();
+  } catch (e) { setStatus('ord-add-status', e.message, 'err'); }
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(c => c.id !== id);
+  renderCart();
+  recalc();
+}
+
+function renderCart() {
+  const tbody = document.getElementById('cart-tbody');
+  if (!cart.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:16px;">Cart is empty.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = cart.map(c => `
+    <tr>
+      <td>${c.id}</td>
+      <td>${esc(c.name)}</td>
+      <td>${c.qty}</td>
+      <td>${c.price.toFixed(2)}</td>
+      <td>${(c.price * c.qty).toFixed(2)}</td>
+      <td><button class="btn btn-danger" onclick="removeFromCart(${c.id})">✕</button></td>
+    </tr>`).join('');
+}
+
+function recalc() {
+  const raw  = cart.reduce((s, c) => s + c.price * c.qty, 0);
+  const disc = orderUser?.role === 'Staff' ? raw * 0.10 : 0;
+  const del  = delivery === 'Dorm Delivery' ? 5 : 0;
+  const total = raw - disc + del;
+  document.getElementById('sum-raw').textContent   = `EGP ${raw.toFixed(2)}`;
+  document.getElementById('sum-disc').textContent  = `-EGP ${disc.toFixed(2)}`;
+  document.getElementById('sum-del').textContent   = `EGP ${del.toFixed(2)}`;
+  document.getElementById('sum-total').textContent = `EGP ${total.toFixed(2)}`;
+  document.getElementById('sum-disc-row').style.display = disc > 0 ? 'flex' : 'none';
+}
+
+async function checkout() {
+  if (!orderUser) return;
+  if (!cart.length) { setStatus('checkout-status', 'Cart is empty.', 'err'); return; }
+  const cardNumber = document.getElementById('ord-card').value.trim();
+  if (paymentMethod === 'Card' && !/^\d{16}$/.test(cardNumber)) {
+    setStatus('checkout-status', 'Card number must be exactly 16 numeric digits.', 'err'); return;
+  }
+  try {
+    const result = await api('POST', '/orders/checkout', {
+      campusID: orderUser.campusID,
+      delivery,
+      items: cart.map(c => ({ id: c.id, qty: c.qty })),
+      paymentMethod,
+      cardNumber
+    });
+    setStatus('checkout-status', `✓ Order #${result.orderId} completed! Total: EGP ${result.total.toFixed(2)}`, 'ok');
+    toast(`Order #${result.orderId} completed — EGP ${result.total.toFixed(2)}`, 'ok');
+    // reset
+    cart = []; orderUser = null;
+    document.getElementById('ord-userid').value = '';
+    document.getElementById('ord-card').value = '';
+    document.getElementById('ord-user-status').className = 'status hidden';
+    document.getElementById('ord-body').style.opacity = '.35';
+    document.getElementById('ord-body').style.pointerEvents = 'none';
+    document.getElementById('checkout-btn').disabled = false;
+    renderCart(); recalc();
+    loadInventory();
+  } catch (e) { setStatus('checkout-status', e.message, 'err'); }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// REPORTS TAB
+// ──────────────────────────────────────────────────────────────────────────────
+function renderReports() {
+  const q       = (document.getElementById('rep-filter')?.value || '').toLowerCase();
+  const cat     = document.getElementById('rep-cat')?.value || '';
+  const lowOnly = document.getElementById('rep-low-only')?.checked;
+  let data = allResources.filter(r => {
+    if (q && !r.name.toLowerCase().includes(q) && !r.category.toLowerCase().includes(q)) return false;
+    if (cat && r.category !== cat) return false;
+    if (lowOnly && r.stock > 5) return false;
+    return true;
+  });
+  const tbody = document.getElementById('rep-tbody');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px;">No results.</td></tr>'; return; }
+  tbody.innerHTML = data.map(r => `
+    <tr class="${r.stock <= 5 ? 'low' : ''}">
+      <td>${r.id}</td>
+      <td>${esc(r.name)}</td>
+      <td><span class="badge ${catBadge[r.category] || ''}">${catLabel[r.category] || esc(r.category)}</span></td>
+      <td>${r.price.toFixed(2)}</td>
+      <td class="${r.stock <= 5 ? 'stock-low' : 'stock-ok'}">${r.stock}${r.stock <= 5 ? ' ⚠' : ''}</td>
+      <td style="color:var(--text2)">${esc(r.extra || '—')}</td>
+      <td><button class="btn btn-danger" onclick="removeResource(${r.id}, '${esc(r.name)}')">✕ Remove</button></td>
+    </tr>`).join('');
+}
+function filterReports() { renderReports(); }
+
+async function viewReport() {
+  const id = parseInt(document.getElementById('rep-id').value);
+  if (!id) { document.getElementById('rep-box').textContent = 'Enter a resource ID first.'; return; }
+  try {
+    const r = await api('GET', `/resources/${id}`);
+    let text = `ID       : ${r.id}\nName     : ${r.name}\nCategory : ${r.category}\nPrice    : EGP ${r.price.toFixed(2)}\nStock    : ${r.stock} units`;
+    if (r.extra) {
+      const label = r.category === 'Lab Hardware' ? 'Warranty' : r.category === 'Cafeteria Perishables' ? 'Expires' : 'Author';
+      text += `\n${label.padEnd(9)}: ${r.extra}`;
+    }
+    if (r.category === 'Cafeteria Perishables' && r.extra) {
+      const days = Math.round((new Date(r.extra) - Date.now()) / 86400000);
+      text += days < 0 ? `\nStatus   : ⚠ EXPIRED ${Math.abs(days)} day(s) ago` : days === 0 ? '\nStatus   : ⚠ EXPIRES TODAY' : days <= 3 ? `\nStatus   : ⚠ Expires in ${days} day(s)` : `\nStatus   : ✓ OK`;
+    }
+    document.getElementById('rep-box').textContent = text;
+    document.getElementById('rep-box').style.color = 'var(--accent3)';
+  } catch (e) {
+    document.getElementById('rep-box').textContent = e.message;
+    document.getElementById('rep-box').style.color = 'var(--red)';
+  }
+}
+
+async function compareReport() {
+  const id1 = document.getElementById('rcmp-id1').value;
+  const id2 = document.getElementById('rcmp-id2').value;
+  const el = document.getElementById('rcmp-result');
+  try {
+    const res = await api('GET', `/compare?id1=${id1}&id2=${id2}`);
+    el.textContent = res.comparison;
+    el.style.color = 'var(--accent2)';
+    el.style.display = 'block';
+  } catch (e) {
+    el.textContent = e.message;
+    el.style.color = 'var(--red)';
+    el.style.display = 'block';
+  }
+}
+
+function renderStats() {
+  const total   = allResources.length;
+  const low     = allResources.filter(r => r.stock <= 5).length;
+  const cats    = {};
+  allResources.forEach(r => cats[r.category] = (cats[r.category] || 0) + 1);
+  const totalVal = allResources.reduce((s, r) => s + r.price * r.stock, 0);
+  let html = `Total Resources : ${total}\nLow Stock Alerts: ${low}\nInventory Value : EGP ${totalVal.toFixed(2)}\n`;
+  Object.entries(cats).forEach(([k, v]) => { html += `\n${catLabel[k] || k}: ${v}`; });
+  document.getElementById('stats-box').textContent = html;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// TRANSACTIONS TAB
+// ──────────────────────────────────────────────────────────────────────────────
+async function loadTransactions() {
+  try {
+    allTransactions = await api('GET', '/transactions');
+    renderTransactions();
+  } catch (e) { toast('Could not load transactions: ' + e.message, 'err'); }
+}
+
+function renderTransactions(data) {
+  const rows = data || filterTxData();
+  const el = document.getElementById('tx-list');
+  if (!rows.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-family:var(--font-code);font-size:12px;text-align:center;padding:40px;">No transactions yet.</div>';
+    return;
+  }
+  // Show newest first
+  el.innerHTML = [...rows].reverse().map(line => {
+    const m = line.match(/^(Order#\d+)\s*\|(.*)/);
+    if (!m) return `<div class="tx-item">${esc(line)}</div>`;
+    return `<div class="tx-item"><span class="order-id">${esc(m[1])}</span>${esc(m[2])}</div>`;
+  }).join('');
+}
+
+function filterTxData() {
+  const q = document.getElementById('tx-filter').value.toLowerCase();
+  return allTransactions.filter(t => !q || t.toLowerCase().includes(q));
+}
+function filterTransactions() { renderTransactions(); }
+
+// ─── Util ─────────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    await loadInventory();
+    await loadUsers();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+  } catch (e) {
+    document.getElementById('loading').innerHTML = `
+      <div style="color:var(--red);font-family:var(--font-h);font-size:18px;letter-spacing:2px;">⚠ CANNOT CONNECT TO SERVER</div>
+      <div style="color:var(--text2);font-family:var(--font-code);font-size:13px;margin-top:10px;">Make sure you ran: <span style="color:var(--accent2);">node server.js</span></div>
+      <div style="color:var(--text3);font-size:12px;margin-top:6px;">${e.message}</div>
+      <button class="btn btn-primary" onclick="location.reload()" style="margin-top:20px;">Retry</button>`;
+  }
+}
+
+async function removeResource(id, name) {
+  if (!confirm(`Remove resource "${name}" (ID ${id})? This cannot be undone.`)) return;
+  try {
+    await api('DELETE', `/resources/${id}`);
+    toast(`Resource "${name}" removed.`, 'ok');
+    loadInventory();
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+async function removeUser(campusID, name) {
+  if (!confirm(`Remove user "${name}" (${campusID})? This cannot be undone.`)) return;
+  try {
+    await api('DELETE', `/users/${encodeURIComponent(campusID)}`);
+    toast(`User "${name}" removed.`, 'ok');
+    loadUsers();
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+init();
+</script>
+</body>
+</html>
