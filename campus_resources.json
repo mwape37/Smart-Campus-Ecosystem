@@ -1,0 +1,10 @@
+[
+  {
+    "id": 2,
+    "name": "snack",
+    "category": "Cafeteria Perishables",
+    "price": 10,
+    "stock": 0,
+    "extra": "2026-06-13"
+  }
+]
